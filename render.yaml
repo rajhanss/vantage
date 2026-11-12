@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: vantage-intelligence
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: VANTAGE_ENVIRONMENT
+        value: production
+      - key: VANTAGE_DEBUG
+        value: "false"
+      - key: VANTAGE_DB_PATH
+        value: /tmp/vantage.db
+      - key: VANTAGE_INGEST_INTERVAL_MINUTES
+        value: "60"
+      - key: VANTAGE_GROQ_API_KEY
+        value: ""
+      - key: VANTAGE_GEMINI_API_KEY
+        value: ""
+      - key: VANTAGE_TAVILY_API_KEY
+        value: ""
