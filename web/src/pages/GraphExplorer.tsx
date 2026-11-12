@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Network, Search, Layers, CircleDot } from 'lucide-react';
+import { Network, Layers, CircleDot } from 'lucide-react';
 import type { GraphData, GraphNode } from '../types';
 import { NetworkGraph } from '../components/NetworkGraph';
 
@@ -19,27 +19,27 @@ export const GraphExplorer: React.FC<GraphExplorerProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Deck */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-vantage-800 pb-4 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-vantage-700 pb-4 gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <Network className="w-5 h-5 text-vantage-accent" />
-            <h1 className="text-xl font-mono font-bold text-white tracking-wide">
-              CROSS-PLATFORM CO-OCCURRENCE MATRIX
+            <Network className="w-5 h-5 text-vantage-accent" aria-hidden="true" />
+            <h1 className="text-xl font-bold text-white tracking-tight">
+              Cross-platform co-occurrence matrix
             </h1>
           </div>
-          <p className="text-xs text-slate-400 font-mono mt-1">
-            Visualizing topological relationships, community clusters (Louvain greedy modularity), and betweenness centrality.
+          <p className="text-xs text-slate-400 mt-1">
+            Topological relationships, community clusters (Louvain modularity), and betweenness centralities.
           </p>
         </div>
 
         <div className="flex items-center space-x-4 text-xs font-mono">
-          <div className="flex items-center space-x-1.5 bg-vantage-900 border border-vantage-800 px-3 py-1.5 rounded">
-            <CircleDot className="w-3.5 h-3.5 text-vantage-accent" />
-            <span>{graphData.nodes.length} Nodes</span>
+          <div className="flex items-center space-x-1.5 bg-vantage-900 border border-vantage-700 px-3 py-1.5 rounded">
+            <CircleDot className="w-3.5 h-3.5 text-vantage-accent" aria-hidden="true" />
+            <span>{graphData.nodes.length} nodes</span>
           </div>
-          <div className="flex items-center space-x-1.5 bg-vantage-900 border border-vantage-800 px-3 py-1.5 rounded">
-            <Layers className="w-3.5 h-3.5 text-vantage-neon" />
-            <span>{graphData.communities.length} Clusters</span>
+          <div className="flex items-center space-x-1.5 bg-vantage-900 border border-vantage-700 px-3 py-1.5 rounded">
+            <Layers className="w-3.5 h-3.5 text-purple-400" aria-hidden="true" />
+            <span>{graphData.communities.length} clusters</span>
           </div>
         </div>
       </div>
@@ -48,8 +48,8 @@ export const GraphExplorer: React.FC<GraphExplorerProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
           {loading ? (
-            <div className="h-[520px] flex items-center justify-center text-xs font-mono text-slate-500 bg-vantage-950 border border-vantage-800 rounded-lg">
-              CALCULATING TOPOLOGY & CENTRALITIES...
+            <div className="h-[520px] flex items-center justify-center text-xs text-slate-500 bg-vantage-950 border border-vantage-700 rounded">
+              Calculating topology and centralities...
             </div>
           ) : (
             <NetworkGraph
@@ -62,51 +62,52 @@ export const GraphExplorer: React.FC<GraphExplorerProps> = ({
 
         {/* Node Inspector Panel */}
         <div className="space-y-4">
-          <div className="bg-vantage-900 border border-vantage-700 rounded-lg p-4">
-            <h3 className="font-mono text-xs font-bold text-white uppercase tracking-wider mb-3 flex items-center space-x-1.5">
-              <span>NODE INSPECTOR</span>
+          <div className="bg-vantage-900 border border-vantage-700 rounded p-4">
+            <h3 className="text-xs font-semibold text-white mb-3">
+              Node inspector
             </h3>
 
             {selectedNode ? (
-              <div className="space-y-3 font-mono text-xs">
+              <div className="space-y-3 text-xs">
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase">Entity Name</div>
-                  <div className="text-sm font-bold text-vantage-accent break-all mt-0.5">
+                  <div className="text-xs text-slate-500">Entity name</div>
+                  <div className="font-mono font-semibold text-vantage-accent break-all mt-0.5">
                     {selectedNode.name}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-vantage-800">
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-vantage-700/60">
                   <div>
-                    <div className="text-[10px] text-slate-500 uppercase">Type</div>
+                    <div className="text-xs text-slate-500">Type</div>
                     <div className="text-slate-200 capitalize mt-0.5">{selectedNode.entity_type}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-slate-500 uppercase">Cluster</div>
-                    <div className="text-slate-200 mt-0.5">#{selectedNode.community_id}</div>
+                    <div className="text-xs text-slate-500">Cluster</div>
+                    <div className="text-slate-200 mt-0.5">Cluster {selectedNode.community_id}</div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-vantage-800">
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-vantage-700/60 font-mono">
                   <div>
-                    <div className="text-[10px] text-slate-500 uppercase">Degree</div>
+                    <div className="text-xs text-slate-500 font-sans">Degree</div>
                     <div className="text-slate-200 mt-0.5">{selectedNode.degree} links</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-slate-500 uppercase">Betweenness</div>
+                    <div className="text-xs text-slate-500 font-sans">Betweenness</div>
                     <div className="text-slate-200 mt-0.5">{selectedNode.betweenness.toFixed(4)}</div>
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => onInspectEntity(selectedNode.id)}
-                  className="w-full mt-3 px-3 py-2 bg-vantage-accent/20 hover:bg-vantage-accent/30 text-vantage-accent border border-vantage-accent/40 rounded text-xs font-bold transition-all text-center"
+                  className="w-full mt-3 px-3 py-2 bg-vantage-accent text-white rounded text-xs font-medium hover:bg-blue-600 transition-colors text-center"
                 >
-                  OPEN ENTITY TRAJECTORY
+                  Open entity trajectory
                 </button>
               </div>
             ) : (
-              <div className="text-xs text-slate-500 font-mono py-8 text-center">
+              <div className="text-xs text-slate-500 py-8 text-center">
                 Click any node on the graph canvas to inspect topological metrics.
               </div>
             )}

@@ -8,54 +8,48 @@ interface LifecycleBadgeProps {
 
 const config: Record<
   LifecycleStage,
-  { label: string; bg: string; text: string; border: string; dot: string }
+  { label: string; bg: string; text: string; border: string }
 > = {
   acceleration: {
-    label: 'ACCELERATION',
-    bg: 'bg-emerald-950/60',
+    label: 'Acceleration',
+    bg: 'bg-emerald-950/40',
     text: 'text-emerald-400',
-    border: 'border-emerald-500/40',
-    dot: 'bg-emerald-400 animate-pulse',
+    border: 'border-emerald-800/60',
   },
   inflection: {
-    label: 'INFLECTION',
-    bg: 'bg-cyan-950/60',
-    text: 'text-cyan-400',
-    border: 'border-cyan-500/40',
-    dot: 'bg-cyan-400',
+    label: 'Inflection',
+    bg: 'bg-blue-950/40',
+    text: 'text-blue-400',
+    border: 'border-blue-800/60',
   },
   saturation: {
-    label: 'SATURATION',
-    bg: 'bg-amber-950/60',
+    label: 'Saturation',
+    bg: 'bg-amber-950/40',
     text: 'text-amber-400',
-    border: 'border-amber-500/40',
-    dot: 'bg-amber-400',
+    border: 'border-amber-800/60',
   },
   decay: {
-    label: 'DECAY',
-    bg: 'bg-rose-950/60',
+    label: 'Decay',
+    bg: 'bg-rose-950/40',
     text: 'text-rose-400',
-    border: 'border-rose-500/40',
-    dot: 'bg-rose-400',
+    border: 'border-rose-800/60',
   },
   emergence: {
-    label: 'EMERGENCE',
-    bg: 'bg-indigo-950/60',
-    text: 'text-indigo-400',
-    border: 'border-indigo-500/40',
-    dot: 'bg-indigo-400',
+    label: 'Emergence',
+    bg: 'bg-slate-900',
+    text: 'text-slate-300',
+    border: 'border-slate-700',
   },
 };
 
 export const LifecycleBadge: React.FC<LifecycleBadgeProps> = ({ stage, size = 'sm' }) => {
   const c = config[stage] || config.emergence;
-  const padding = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs';
+  const padding = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-xs';
 
   return (
     <span
-      className={`inline-flex items-center space-x-1.5 rounded-full font-mono font-medium border ${c.bg} ${c.text} ${c.border} ${padding}`}
+      className={`inline-flex items-center rounded font-medium border ${c.bg} ${c.text} ${c.border} ${padding}`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
       <span>{c.label}</span>
     </span>
   );

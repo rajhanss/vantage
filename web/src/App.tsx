@@ -78,7 +78,6 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     loadData();
-    // Poll ingest status every 8s
     const timer = setInterval(async () => {
       try {
         const s = await api.getIngestStatus();
@@ -125,7 +124,7 @@ export const App: React.FC = () => {
   const handleTriggerIngest = async () => {
     try {
       setIngestRunning(true);
-      showNotice('Sweeping public ecosystems (GitHub, HuggingFace, PyPI, arXiv, HN)...');
+      showNotice('Sweeping public ecosystems: GitHub, Hugging Face, PyPI, arXiv, and HackerNews...');
       await api.triggerIngest();
       setTimeout(loadData, 5000);
     } catch (e) {
@@ -134,7 +133,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-vantage-950 flex flex-col scanline">
+    <div className="min-h-screen bg-vantage-950 flex flex-col text-slate-100">
       <Navbar
         currentTab={currentTab}
         onSelectTab={setCurrentTab}
@@ -145,8 +144,8 @@ export const App: React.FC = () => {
 
       {/* Ephemeral Notice Toast */}
       {notice && (
-        <div className="fixed bottom-6 right-6 z-50 bg-vantage-800 border border-vantage-accent text-white font-mono text-xs px-4 py-2.5 rounded-lg shadow-2xl flex items-center space-x-2">
-          <span className="w-2 h-2 rounded-full bg-vantage-accent animate-ping" />
+        <div className="fixed bottom-6 right-6 z-50 bg-vantage-800 border border-vantage-600 text-white text-xs px-4 py-2.5 rounded shadow-lg flex items-center space-x-2">
+          <span className="w-2 h-2 rounded-full bg-vantage-accent motion-safe:animate-pulse" />
           <span>{notice}</span>
         </div>
       )}
@@ -192,8 +191,8 @@ export const App: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-vantage-800 bg-vantage-950 py-4 text-center text-[11px] font-mono text-slate-500">
-        VANTAGE INTELLIGENCE PLATFORM — SEE BEYOND THE OBVIOUS. MULTIMODAL TEMPORAL SIGNAL DISCOVERY.
+      <footer className="border-t border-vantage-700 bg-vantage-950 py-4 text-center text-xs text-slate-500">
+        Vantage Intelligence Platform: temporal signal discovery and predictive modeling.
       </footer>
     </div>
   );

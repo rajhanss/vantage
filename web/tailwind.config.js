@@ -9,22 +9,21 @@ export default {
     extend: {
       colors: {
         vantage: {
-          950: '#06090e',
-          900: '#0d1117',
-          850: '#131922',
-          800: '#161b22',
-          700: '#21262d',
-          600: '#30363d',
-          500: '#484f58',
-          accent: '#00f0ff',
-          neon: '#7928ca',
-          surge: '#00ff66',
-          warning: '#ffb700',
-          danger: '#ff3366',
+          950: 'var(--vt-bg-canvas)',
+          900: 'var(--vt-bg-surface)',
+          850: 'var(--vt-bg-surface-elevated)',
+          800: 'var(--vt-bg-surface-muted)',
+          700: 'var(--vt-border-subtle)',
+          600: 'var(--vt-border-strong)',
+          500: 'var(--vt-text-muted)',
+          accent: 'var(--vt-accent-primary)',
+          surge: 'var(--vt-signal-positive)',
+          warning: 'var(--vt-signal-warning)',
+          danger: 'var(--vt-signal-danger)',
         }
       },
       fontFamily: {
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        mono: ['JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       }
     },

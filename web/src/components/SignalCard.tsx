@@ -12,21 +12,25 @@ export const SignalCard: React.FC<SignalCardProps> = ({ signal, onInspect }) => 
   const isPositiveVelocity = signal.velocity >= 0;
 
   return (
-    <div className="group relative bg-vantage-900 border border-vantage-700/80 hover:border-vantage-accent/60 rounded-lg p-4 transition-all duration-200 hover:shadow-lg hover:shadow-vantage-accent/5">
+    <div className="group relative bg-vantage-900 border border-vantage-700 hover:border-vantage-600 rounded p-4 transition-colors">
       {/* Top row: entity type & signal badge */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 bg-vantage-800 px-2 py-0.5 rounded border border-vantage-700">
+        <span className="text-xs text-slate-400 bg-vantage-800 px-2 py-0.5 rounded border border-vantage-700">
           {signal.entity_type}
         </span>
         <div className="flex items-center space-x-1.5">
           <span
-            className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded font-mono text-[10px] font-semibold border ${
+            className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded font-mono text-xs font-semibold border ${
               isSurge
-                ? 'bg-emerald-950/70 text-emerald-400 border-emerald-500/40'
-                : 'bg-amber-950/70 text-amber-400 border-amber-500/40'
+                ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60'
+                : 'bg-amber-950/40 text-amber-400 border-amber-800/60'
             }`}
           >
-            {isSurge ? <Zap className="w-2.5 h-2.5" /> : <AlertTriangle className="w-2.5 h-2.5" />}
+            {isSurge ? (
+              <Zap className="w-3 h-3 text-emerald-400" aria-hidden="true" />
+            ) : (
+              <AlertTriangle className="w-3 h-3 text-amber-400" aria-hidden="true" />
+            )}
             <span>Z={signal.z_score > 0 ? `+${signal.z_score.toFixed(1)}` : signal.z_score.toFixed(1)}σ</span>
           </span>
         </div>
@@ -35,7 +39,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({ signal, onInspect }) => 
       {/* Entity name */}
       <h3
         onClick={() => onInspect(signal.entity_id)}
-        className="font-mono font-bold text-sm text-white group-hover:text-vantage-accent transition-colors truncate cursor-pointer"
+        className="font-mono font-semibold text-sm text-white group-hover:text-vantage-accent transition-colors truncate cursor-pointer"
         title={signal.entity_name}
       >
         {signal.entity_name}
@@ -51,26 +55,27 @@ export const SignalCard: React.FC<SignalCardProps> = ({ signal, onInspect }) => 
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-1">
             {isPositiveVelocity ? (
-              <ArrowUpRight className="w-3.5 h-3.5 text-vantage-surge" />
+              <ArrowUpRight className="w-3.5 h-3.5 text-vantage-surge" aria-hidden="true" />
             ) : (
-              <ArrowDownRight className="w-3.5 h-3.5 text-rose-400" />
+              <ArrowDownRight className="w-3.5 h-3.5 text-rose-400" aria-hidden="true" />
             )}
-            <span className={isPositiveVelocity ? 'text-vantage-surge' : 'text-rose-400'}>
-              {signal.velocity > 0 ? `+${signal.velocity.toFixed(1)}` : signal.velocity.toFixed(1)}/d
+            <span className={isPositiveVelocity ? 'text-vantage-surge font-semibold' : 'text-rose-400 font-semibold'}>
+              {signal.velocity > 0 ? `+${signal.velocity.toFixed(1)}` : signal.velocity.toFixed(1)}/day
             </span>
           </div>
 
-          <div className="text-slate-500 text-[11px]">
-            a={signal.acceleration > 0 ? `+${signal.acceleration.toFixed(2)}` : signal.acceleration.toFixed(2)}
+          <div className="text-slate-500 text-xs">
+            accel: {signal.acceleration > 0 ? `+${signal.acceleration.toFixed(2)}` : signal.acceleration.toFixed(2)}
           </div>
         </div>
 
         <button
+          type="button"
           onClick={() => onInspect(signal.entity_id)}
-          className="text-slate-400 hover:text-vantage-accent transition-colors flex items-center space-x-1 text-[11px]"
+          className="text-slate-300 hover:text-vantage-accent transition-colors flex items-center space-x-1 text-xs font-sans"
         >
-          <span>ANALYZE</span>
-          <ExternalLink className="w-3 h-3" />
+          <span>Inspect</span>
+          <ExternalLink className="w-3 h-3" aria-hidden="true" />
         </button>
       </div>
     </div>

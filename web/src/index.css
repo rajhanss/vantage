@@ -1,49 +1,75 @@
+/* Hallmark: v2.0.0 | genre: modern-minimal | theme: technical-intelligence | critique: precision engineering terminal */
+:root {
+  --vt-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --vt-font-mono: 'JetBrains Mono', monospace;
+
+  --vt-bg-canvas: #090b0e;
+  --vt-bg-surface: #101318;
+  --vt-bg-surface-elevated: #151921;
+  --vt-bg-surface-muted: #1c212c;
+  
+  --vt-border-subtle: #242a38;
+  --vt-border-strong: #333b4e;
+  --vt-border-focus: #3b82f6;
+
+  --vt-text-primary: #f1f5f9;
+  --vt-text-secondary: #94a3b8;
+  --vt-text-muted: #64748b;
+
+  --vt-accent-primary: #3b82f6;
+  --vt-accent-hover: #60a5fa;
+  
+  --vt-signal-positive: #10b981;
+  --vt-signal-warning: #f59e0b;
+  --vt-signal-danger: #ef4444;
+
+  color-scheme: dark;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
-}
-
+html,
 body {
-  margin: 0;
-  min-height: 100vh;
-  background-color: #06090e;
-  overflow-x: hidden;
+  overflow-x: clip;
+  background-color: var(--vt-bg-canvas);
+  color: var(--vt-text-primary);
+  font-family: var(--vt-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
+/* Accessible focus ring across all interactive controls */
+:focus-visible {
+  outline: 2px solid var(--vt-border-focus);
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference fallback */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Purposeful custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0d1117;
+  background: var(--vt-bg-canvas);
 }
 ::-webkit-scrollbar-thumb {
-  background: #21262d;
+  background: var(--vt-border-subtle);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #30363d;
-}
-
-.terminal-glow {
-  box-shadow: 0 0 20px -5px rgba(0, 240, 255, 0.2);
-}
-
-.terminal-glow-green {
-  box-shadow: 0 0 20px -5px rgba(0, 255, 102, 0.2);
-}
-
-.scanline {
-  background: linear-gradient(
-    to bottom,
-    rgba(255,255,255,0),
-    rgba(255,255,255,0) 50%,
-    rgba(0, 240, 255, 0.02) 50%,
-    rgba(0, 240, 255, 0.02)
-  );
-  background-size: 100% 4px;
+  background: var(--vt-border-strong);
 }

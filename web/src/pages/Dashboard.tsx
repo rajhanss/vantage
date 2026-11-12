@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, Flame, ShieldAlert, Sparkles, Filter, Zap } from 'lucide-react';
+import { Activity, Flame, Filter, Zap, TrendingUp, Layers } from 'lucide-react';
 import type { Signal, TrendDetail } from '../types';
 import { SignalCard } from '../components/SignalCard';
 import { LifecycleBadge } from '../components/LifecycleBadge';
@@ -26,65 +26,60 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Hero Telemetry Banner */}
-      <div className="relative overflow-hidden rounded-xl border border-vantage-700 bg-gradient-to-r from-vantage-900 via-vantage-850 to-vantage-900 p-6 shadow-2xl">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-vantage-accent/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
+      {/* Overview Header */}
+      <div className="rounded border border-vantage-700 bg-vantage-900 p-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
-            <div className="flex items-center space-x-2 text-xs font-mono text-vantage-accent uppercase tracking-widest">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Real-Time Anomaly & Velocity Radar</span>
-            </div>
-            <h1 className="mt-1 text-2xl font-mono font-bold text-white tracking-tight">
-              INTERNET INTELLIGENCE RADAR
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Ecosystem intelligence radar
             </h1>
-            <p className="mt-1 text-xs text-slate-400 max-w-xl">
-              Continuously monitoring cross-platform activity across GitHub repositories, HuggingFace models,
-              arXiv papers, PyPI packages, and HackerNews discussions. Identifying statistical inflection points.
+            <p className="mt-1.5 text-sm text-slate-400 max-w-2xl leading-relaxed">
+              Monitoring telemetry across GitHub, Hugging Face, arXiv, PyPI, and HackerNews to detect emerging technologies, inflection points, and adoption curves.
             </p>
           </div>
 
           <div className="grid grid-cols-3 gap-3 w-full md:w-auto">
-            <div className="bg-vantage-950/70 border border-vantage-700/80 rounded-lg p-3 text-center">
-              <div className="text-[10px] font-mono text-slate-400 uppercase">Signals Active</div>
+            <div className="bg-vantage-950 border border-vantage-700 rounded p-3 text-center min-w-[100px]">
+              <div className="text-xs text-slate-400">Signals active</div>
               <div className="text-xl font-mono font-bold text-vantage-surge mt-0.5">{signals.length}</div>
             </div>
-            <div className="bg-vantage-950/70 border border-vantage-700/80 rounded-lg p-3 text-center">
-              <div className="text-[10px] font-mono text-slate-400 uppercase">Surges (&gt;2.5σ)</div>
+            <div className="bg-vantage-950 border border-vantage-700 rounded p-3 text-center min-w-[100px]">
+              <div className="text-xs text-slate-400">Surges (&gt;2.5σ)</div>
               <div className="text-xl font-mono font-bold text-vantage-accent mt-0.5">
                 {signals.filter((s) => s.z_score >= 2.5).length}
               </div>
             </div>
-            <div className="bg-vantage-950/70 border border-vantage-700/80 rounded-lg p-3 text-center">
-              <div className="text-[10px] font-mono text-slate-400 uppercase">Tracked Entities</div>
+            <div className="bg-vantage-950 border border-vantage-700 rounded p-3 text-center min-w-[100px]">
+              <div className="text-xs text-slate-400">Tracked entities</div>
               <div className="text-xl font-mono font-bold text-white mt-0.5">{topTrends.length}</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Grid: Signals Ticker + Momentum Leaderboard */}
+      {/* Main Grid: Signals Feed + Momentum Leaderboard */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left 2 Cols: Signals Feed */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between border-b border-vantage-800 pb-3">
+          <div className="flex items-center justify-between border-b border-vantage-700 pb-3">
             <div className="flex items-center space-x-2">
-              <Activity className="w-4 h-4 text-vantage-accent" />
-              <h2 className="font-mono text-sm font-bold text-white tracking-wide">
-                STATISTICAL SIGNALS FEED ({filteredSignals.length})
+              <Activity className="w-4 h-4 text-vantage-accent" aria-hidden="true" />
+              <h2 className="text-sm font-semibold text-white">
+                Statistical signals ({filteredSignals.length})
               </h2>
             </div>
 
-            {/* Filter pills */}
-            <div className="flex items-center space-x-1 text-[11px] font-mono">
-              <Filter className="w-3 h-3 text-slate-500 mr-1" />
+            {/* Filter controls */}
+            <div className="flex items-center space-x-1 text-xs">
+              <Filter className="w-3.5 h-3.5 text-slate-500 mr-1" aria-hidden="true" />
               {['all', 'repository', 'model', 'package', 'paper', 'topic'].map((type) => (
                 <button
                   key={type}
+                  type="button"
                   onClick={() => setFilterType(type)}
-                  className={`px-2 py-0.5 rounded uppercase ${
+                  className={`px-2 py-0.5 rounded capitalize transition-colors ${
                     filterType === type
-                      ? 'bg-vantage-accent text-black font-semibold'
+                      ? 'bg-vantage-accent text-white font-medium'
                       : 'text-slate-400 hover:text-white bg-vantage-800'
                   }`}
                 >
@@ -95,15 +90,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {loading ? (
-            <div className="h-64 flex items-center justify-center text-xs font-mono text-slate-500">
-              POLLING RADAR DETECTORS...
+            <div className="h-64 flex items-center justify-center text-xs text-slate-500">
+              Loading signal feed...
             </div>
           ) : filteredSignals.length === 0 ? (
-            <div className="h-64 flex flex-col items-center justify-center text-xs font-mono text-slate-500 border border-dashed border-vantage-800 rounded-lg p-8 text-center">
-              <Zap className="w-8 h-8 text-slate-600 mb-2" />
-              <span>NO ACTIVE SIGNALS EXCEEDING CURRENT Z-SCORE THRESHOLD</span>
-              <span className="text-[10px] text-slate-600 mt-1">
-                Click &apos;SWEEP ADAPTERS&apos; above to ingest live telemetry from public ecosystems.
+            <div className="h-64 flex flex-col items-center justify-center text-xs text-slate-500 border border-dashed border-vantage-700 rounded p-8 text-center">
+              <Zap className="w-8 h-8 text-slate-600 mb-2" aria-hidden="true" />
+              <span className="font-medium text-slate-400">No active signals exceeding current threshold</span>
+              <span className="text-xs text-slate-500 mt-1">
+                Click &quot;Sweep adapters&quot; in the header to ingest live telemetry.
               </span>
             </div>
           ) : (
@@ -117,10 +112,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Right Col: Momentum Leaderboard */}
         <div className="space-y-4">
-          <div className="flex items-center space-x-2 border-b border-vantage-800 pb-3">
-            <Flame className="w-4 h-4 text-vantage-warning" />
-            <h2 className="font-mono text-sm font-bold text-white tracking-wide">
-              MOMENTUM LEADERBOARD
+          <div className="flex items-center space-x-2 border-b border-vantage-700 pb-3">
+            <Flame className="w-4 h-4 text-vantage-warning" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-white">
+              Momentum leaderboard
             </h2>
           </div>
 
@@ -129,17 +124,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div
                 key={t.entity.id}
                 onClick={() => onInspectEntity(t.entity.id)}
-                className="group flex items-center justify-between p-3 rounded-lg bg-vantage-900 border border-vantage-800/80 hover:border-vantage-accent/50 cursor-pointer transition-all"
+                className="group flex items-center justify-between p-3 rounded bg-vantage-900 border border-vantage-700 hover:border-vantage-600 cursor-pointer transition-colors"
               >
                 <div className="flex items-center space-x-3 min-w-0">
-                  <span className="font-mono text-xs font-bold text-slate-500 w-4 text-right">
-                    #{idx + 1}
+                  <span className="font-mono text-xs text-slate-500 w-5 text-right">
+                    {idx + 1}
                   </span>
                   <div className="min-w-0">
-                    <div className="font-mono text-xs font-semibold text-slate-200 group-hover:text-vantage-accent truncate">
+                    <div className="font-mono text-xs font-medium text-slate-200 group-hover:text-vantage-accent truncate">
                       {t.entity.name}
                     </div>
-                    <div className="text-[10px] text-slate-500 uppercase font-mono">
+                    <div className="text-xs text-slate-500 capitalize">
                       {t.entity.entity_type}
                     </div>
                   </div>
@@ -147,7 +142,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                 <div className="flex items-center space-x-2 text-right">
                   <LifecycleBadge stage={t.lifecycle_stage} size="sm" />
-                  <div className="font-mono text-xs font-bold text-vantage-accent w-12 text-right">
+                  <div className="font-mono text-xs font-semibold text-vantage-accent w-12 text-right">
                     {Math.round(t.momentum_score * 100)}%
                   </div>
                 </div>

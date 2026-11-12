@@ -23,7 +23,6 @@ export const TrendChart: React.FC<TrendChartProps> = ({
   forecast,
   metricName = 'Activity',
 }) => {
-  // Merge historical + forecast into unified chronological timeline
   const chartData = React.useMemo(() => {
     const rows: Array<{
       date: string;
@@ -35,7 +34,6 @@ export const TrendChart: React.FC<TrendChartProps> = ({
       upper95?: number;
     }> = [];
 
-    // Historical points
     const sorted = [...observations].sort(
       (a, b) => new Date(a.observed_at).getTime() - new Date(b.observed_at).getTime()
     );
@@ -47,7 +45,6 @@ export const TrendChart: React.FC<TrendChartProps> = ({
       });
     }
 
-    // Bridge last historical point to forecast start
     if (rows.length > 0 && forecast && forecast.points.length > 0) {
       const lastHist = rows[rows.length - 1];
       lastHist.forecast = lastHist.historical;
@@ -73,8 +70,8 @@ export const TrendChart: React.FC<TrendChartProps> = ({
 
   if (chartData.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-slate-500 font-mono text-xs border border-vantage-800 rounded bg-vantage-950/40">
-        NO OBSERVATIONS RECORDED FOR THIS ENTITY
+      <div className="h-64 flex items-center justify-center text-slate-500 text-xs border border-vantage-800 rounded bg-vantage-950">
+        No observations recorded for this entity
       </div>
     );
   }
@@ -86,61 +83,56 @@ export const TrendChart: React.FC<TrendChartProps> = ({
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
           <defs>
-            {/* Shaded 95% Confidence Interval Ribbon */}
             <linearGradient id="ci95" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#00f0ff" stopOpacity={0.15} />
-              <stop offset="100%" stopColor="#00f0ff" stopOpacity={0.02} />
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.12} />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02} />
             </linearGradient>
-            {/* Shaded 80% Confidence Interval Ribbon */}
             <linearGradient id="ci80" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#00f0ff" stopOpacity={0.25} />
-              <stop offset="100%" stopColor="#00f0ff" stopOpacity={0.05} />
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.2} />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.05} />
             </linearGradient>
-            {/* Historical fill */}
             <linearGradient id="histFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#00ff66" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="#00ff66" stopOpacity={0.0} />
+              <stop offset="0%" stopColor="#10b981" stopOpacity={0.25} />
+              <stop offset="100%" stopColor="#10b981" stopOpacity={0.0} />
             </linearGradient>
           </defs>
 
-          <CartesianGrid strokeDasharray="3 3" stroke="#21262d" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#242a38" />
           <XAxis
             dataKey="date"
-            stroke="#484f58"
-            tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#8b949e' }}
+            stroke="#64748b"
+            tick={{ fontSize: 10, fill: '#94a3b8' }}
             tickFormatter={(val) => val.slice(5)}
           />
           <YAxis
-            stroke="#484f58"
-            tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#8b949e' }}
+            stroke="#64748b"
+            tick={{ fontSize: 10, fill: '#94a3b8' }}
             tickFormatter={(val) => (val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val)}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#0d1117',
-              borderColor: '#30363d',
-              borderRadius: '6px',
-              fontFamily: 'monospace',
+              backgroundColor: 'var(--vt-bg-surface)',
+              borderColor: 'var(--vt-border-subtle)',
+              borderRadius: '4px',
               fontSize: '11px',
+              color: 'var(--vt-text-primary)',
             }}
           />
 
           {forecastStartDate && (
             <ReferenceLine
               x={forecastStartDate}
-              stroke="#00f0ff"
+              stroke="#3b82f6"
               strokeDasharray="4 4"
               label={{
-                value: 'FORECAST HORIZON',
+                value: 'Forecast horizon',
                 position: 'top',
-                fill: '#00f0ff',
-                fontSize: 9,
-                fontFamily: 'monospace',
+                fill: '#60a5fa',
+                fontSize: 10,
               }}
             />
           )}
 
-          {/* 95% Confidence Interval Band */}
           <Area
             type="monotone"
             dataKey="upper95"
@@ -149,7 +141,6 @@ export const TrendChart: React.FC<TrendChartProps> = ({
             fillOpacity={1}
             isAnimationActive={false}
           />
-          {/* 80% Confidence Interval Band */}
           <Area
             type="monotone"
             dataKey="upper80"
@@ -159,26 +150,24 @@ export const TrendChart: React.FC<TrendChartProps> = ({
             isAnimationActive={false}
           />
 
-          {/* Historical Data Curve */}
           <Area
             type="monotone"
             dataKey="historical"
-            stroke="#00ff66"
-            strokeWidth={2}
+            stroke="#10b981"
+            strokeWidth={1.5}
             fill="url(#histFill)"
             name={`Observed ${metricName}`}
-            dot={{ r: 2, fill: '#00ff66' }}
+            dot={{ r: 2, fill: '#10b981' }}
           />
 
-          {/* Forecasted Curve */}
           <Line
             type="monotone"
             dataKey="forecast"
-            stroke="#00f0ff"
-            strokeWidth={2}
-            strokeDasharray="5 5"
+            stroke="#3b82f6"
+            strokeWidth={1.5}
+            strokeDasharray="4 4"
             dot={false}
-            name="Holt-Winters 30d Projection"
+            name="Holt-Winters 30-day projection"
           />
         </AreaChart>
       </ResponsiveContainer>
