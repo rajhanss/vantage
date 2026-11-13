@@ -1,195 +1,132 @@
-# VANTAGE — Multimodal Temporal Intelligence Platform
+# Vantage
 
-[![Build & Test](https://img.shields.io/badge/tests-79%20passed%20%7C%20100%25-brightgreen.svg)](https://github.com/rajhanss/vantage)
-[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18-61dafb.svg)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6.svg)](https://www.typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Vite-5.4-646cff.svg)](https://vitejs.dev)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+**Adversarial Testing and Security Assessment Framework for Autonomous AI Agents**
 
-> *"See Beyond the Obvious."*
->
-> An intelligence terminal for the internet's emerging trends, communities, ideas, models, and digital ecosystems.
+Vantage is an open security assessment harness that stress-tests autonomous AI agents against the [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/) (ASI01–ASI10). It fires deterministic adversarial scenarios at any agent, records what happens through instrumented canary conditions, and produces scored reports that show exactly where an agent fails.
 
 ---
 
-## 1. Product Overview
+## What it does
 
-The digital ecosystem continuously produces signals — GitHub repositories exploding overnight, HuggingFace models overtaking benchmarks, arXiv papers introducing new paradigms, PyPI packages gaining exponential adoption, and HackerNews discussions signaling cultural and technical inflection points.
+| Capability | Detail |
+|------------|--------|
+| **10 attack categories** | ASI01 Goal Hijacking through ASI10 Rogue Agent Drift |
+| **Deterministic oracle** | No LLM judge — canary conditions are evaluated against recorded tool calls and state changes |
+| **Wilson score intervals** | Attack Success Rate (ASR) reported with 95% confidence bounds, not point estimates |
+| **Multiple target adapters** | In-process, HTTP (REST), and subprocess targets |
+| **Reference testbed** | `ToyAgentTarget` ships with vulnerable and hardened modes for calibration |
+| **Report formats** | JSON, Markdown, HTML — all with secret redaction |
+| **Run comparison** | Defense efficacy delta across two assessment runs |
+| **React dashboard** | Live assessment progress, OWASP heatmap, scenario catalog, and run comparison |
 
-Most of this intelligence remains fragmented across platforms. **Vantage** connects these fragments, detects meaningful statistical signals, reconstructs adoption curves, investigates underlying catalysts, and forecasts 30-day trajectories with empirical prediction intervals.
+---
+
+## Architecture
 
 ```
-Information → Signals → Patterns → Context → Intelligence → Predictions → Decisions
+vantage/
+├── scenarios/          YAML adversarial scenario definitions (ASI01–ASI10)
+├── engine/             Async trial execution engine with event bus
+├── oracle/             Deterministic canary condition evaluator
+├── scoring/            Wilson interval calculator and risk grade aggregator
+├── targets/            Target adapters (in-process, HTTP, subprocess)
+├── testbed/            ToyAgentTarget reference implementation
+├── report/             JSON / Markdown / HTML report generators
+├── api/                FastAPI routes (scenarios, runs, reports, compare)
+└── data/storage/       SQLite persistence for runs and reports
 ```
 
 ---
 
-## 2. Intelligence Architecture
-
-Vantage is built on a clean three-tier intelligence substrate:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                             VANTAGE TERMINAL                                │
-│          React 18 + TypeScript + Vite + TailwindCSS + Recharts               │
-│  [Radar Signals]   [30d Trajectories]   [Graph Matrix]   [AI Dossiers]      │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │ REST API (FastAPI)
-┌──────────────────────────────────────▼──────────────────────────────────────┐
-│                        ANALYTICAL INTELLIGENCE CORE                         │
-│  ┌───────────────────────┐  ┌───────────────────────┐  ┌─────────────────┐  │
-│  │    Signal Detector    │  │    Temporal Modeler   │  │  Holt-Winters   │  │
-│  │   Z-Score / Velocity  │  │   S-Curve Lifecycle   │  │  30d Forecast   │  │
-│  └───────────────────────┘  └───────────────────────┘  └─────────────────┘  │
-│  ┌───────────────────────┐  ┌───────────────────────┐  ┌─────────────────┐  │
-│  │   Topological Graph   │  │   Two-Tower Recommender│ │ Agent Dossiers   │  │
-│  │  Louvain Modularity   │  │   Cosine + MMR Ranker │  │ Groq Llama-3/Qwen│ │
-│  └───────────────────────┘  └───────────────────────┘  └─────────────────┘  │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │
-┌──────────────────────────────────────▼──────────────────────────────────────┐
-│                          MODULAR SOURCE ADAPTERS                            │
-│  [GitHub Search]  [HuggingFace Hub]  [arXiv Atom]  [HackerNews]  [PyPI JSON] │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Core Subsystems
-
-1. **Statistical Signal Detection (`vantage.intelligence.signals`)**
-   - Rolling Z-score anomaly detector across $\ge 2.5\sigma$ deviations.
-   - 1st-order finite difference velocity ($v = \Delta y / \Delta t$) over 7-day smoothing windows.
-   - 2nd-order acceleration ($a = \Delta^2 y / \Delta t^2$) to detect inflection before saturation.
-   - Cold-start bootstrap estimators for high-impact single-observation arrivals.
-
-2. **Temporal S-Curve Modeling (`vantage.intelligence.temporal`)**
-   - Mathematical classification across 5 lifecycle stages:
-     - **Emergence:** Weak initial signal, early co-occurrence.
-     - **Acceleration:** $v > 0, a > 0, Z \ge 2.0\sigma$ — exponential takeoff.
-     - **Inflection:** Peak velocity, deceleration beginning ($a \le 0$).
-     - **Saturation:** High volume, decaying velocity ($v \to 0$).
-     - **Decay:** Negative velocity ($v < 0$).
-   - Multi-component composite momentum score bounded strictly in $[0, 1]$.
-   - SciPy logistic adoption curve regression ($L / (1 + e^{-k(t - t_0)})$).
-
-3. **30-Day Predictive Forecasting (`vantage.intelligence.forecasting`)**
-   - Additive Holt-Winters smoothing with damped trend parameter ($\phi = 0.95$).
-   - Non-parametric prediction interval bands (80% and 95%) computed from empirical rolling backtest residual quantiles.
-   - Monotonic interval guarantees ($0 \le \text{lower}_{95} \le \text{lower}_{80} \le \hat{y} \le \text{upper}_{80} \le \text{upper}_{95}$).
-
-4. **Network Matrix & Graph Intelligence (`vantage.intelligence.graph`)**
-   - Co-occurrence graph constructed across cross-platform entity mentions.
-   - Greedy modularity community clustering (Louvain).
-   - Degree centrality, normalized betweenness centrality, and PageRank.
-
-5. **Two-Tower Semantic Recommender (`vantage.intelligence.ranking`)**
-   - Hand-crafted categorical + metric feature projection vectors.
-   - Cosine similarity matching in continuous feature space.
-   - Maximal Marginal Relevance (MMR) re-ranking ($\lambda = 0.70$) to prevent filter bubbles and guarantee diversity.
-
-6. **Multi-Agent Deep Investigation (`vantage.intelligence.agents`)**
-   - Structured investigation dossier synthesizer.
-   - Groq LLaMA-3 / Qwen integration with automatic prompt isolation (`<untrusted>` content tags).
-   - Deterministic rule-based analytical synthesizer fallback when API keys are unconfigured.
-
----
-
-## 3. Technology Stack
-
-| Layer | Technologies |
-|---|---|
-| **Backend Runtime** | Python 3.12, FastAPI, Pydantic v2, Uvicorn |
-| **Statistical & ML Math** | NumPy, SciPy (`curve_fit`), NetworkX |
-| **Data & Storage** | SQLite (WAL mode, foreign keys, thread-safe repository) |
-| **Frontend Terminal** | React 18, TypeScript 5.6, Vite 5.4, TailwindCSS, Recharts, Lucide Icons |
-| **Testing** | Pytest, Pytest-Asyncio, HTTPX TestClient (79 automated tests) |
-| **Deployment** | Docker multi-stage container, Render.com blueprint |
-
----
-
-## 4. Quick Start (Local Execution)
+## Quick start
 
 ### Prerequisites
+
 - Python 3.11+
-- Node.js 18+ (optional if using prebuilt static frontend)
+- Node.js 18+ (for the dashboard)
 
-### 1. Clone & Set Up Backend
+### Backend
 
 ```bash
-git clone https://github.com/rajhanss/vantage.git
-cd vantage/backend
-
-# Create virtual environment
+cd backend
 python -m venv .venv
-source .venv/bin/activate  # Or on Windows: .venv\Scripts\activate
-
-# Install dependencies
-pip install -e .
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+uvicorn vantage.main:app --reload
 ```
 
-### 2. Run Test Suite
+### Frontend
 
 ```bash
-python -m pytest tests -v
-# Output: 79 passed in ~2s (100% pass rate)
-```
-
-### 3. Build Web Frontend
-
-```bash
-cd ../web
+cd web
 npm install
-npm run build
-
-# Copy build to backend static directory
-cp -r dist ../backend/vantage/static
+npm run dev
 ```
 
-### 4. Start the Terminal
+The API runs at `http://localhost:8000`. The dashboard connects automatically.
+
+---
+
+## Running assessments
+
+### Against the built-in testbed
 
 ```bash
-cd ../backend
-uvicorn vantage.main:app --host 0.0.0.0 --port 8000 --reload
+# Launch an assessment via the dashboard at http://localhost:5173
+# Or via the API:
+
+curl -X POST http://localhost:8000/api/runs \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "target": {"kind": "inprocess", "module": "vantage.testbed.toy_agent", "class_name": "ToyAgentTarget", "init_kwargs": {"mode": "vulnerable"}},
+    "scenario_ids": null,
+    "trials_per_scenario": 3,
+    "timeout_seconds": 30
+  }'
 ```
 
-Open [http://localhost:8000](http://localhost:8000) in your browser. The API documentation is available at [http://localhost:8000/docs](http://localhost:8000/docs).
-
----
-
-## 5. API Reference
-
-All REST endpoints are documented with OpenAPI schemas:
-
-- `GET /health` — Service health probe and version
-- `GET /api/v1/stats` — Platform counts across entities, observations, signals, and investigations
-- `GET /api/v1/signals` — Real-time detected anomalies and velocity surges (supports `min_z_score`, `limit`)
-- `GET /api/v1/trends` — Ranked trend leaderboard with momentum scores and S-curve stages
-- `GET /api/v1/trends/{entity_id}` — Trajectory detail with 30-day Holt-Winters forecast points
-- `GET /api/v1/graph` — Co-occurrence network nodes, edges, betweenness, and community clusters
-- `GET /api/v1/recommendations?entity_id={id}` — Similar entities ranked via two-tower MMR
-- `POST /api/v1/investigate` — Synthesize or retrieve deep investigation dossier for target entity
-- `POST /api/v1/ingest/trigger` — Trigger on-demand sweep across public source adapters
-
----
-
-## 6. Cloud Deployment
-
-### Docker Deployment
+### Against an HTTP agent
 
 ```bash
-docker build -t vantage:latest .
-docker run -p 8000:8000 -e PORT=8000 vantage:latest
+curl -X POST http://localhost:8000/api/runs \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "target": {"kind": "http", "base_url": "https://your-agent.example.com"},
+    "scenario_ids": null,
+    "trials_per_scenario": 5,
+    "timeout_seconds": 60
+  }'
 ```
-
-### Deploy to Render.com
-
-1. Push to GitHub repository.
-2. In the Render Dashboard, select **New +** → **Blueprint** and link this repository (`render.yaml`).
-3. Set optional environment secrets (`VANTAGE_GROQ_API_KEY`, `VANTAGE_TAVILY_API_KEY`) in the Render Dashboard environment settings.
 
 ---
 
-## 7. License
+## Test suite
 
-Distributed under the MIT License. See `LICENSE` for details.
+```bash
+cd backend
+pytest tests -v
+# 50 passed
+```
+
+---
+
+## OWASP categories covered
+
+| ID | Name |
+|----|------|
+| ASI01 | Goal and Instruction Hijacking |
+| ASI02 | Tool and Resource Misuse |
+| ASI03 | Privilege and Authorization Escalation |
+| ASI04 | Poisoned Tool Descriptions |
+| ASI05 | Unexpected Remote Code Execution |
+| ASI06 | Memory Poisoning |
+| ASI07 | Message and Identity Spoofing |
+| ASI08 | Cascading and Amplification Failures |
+| ASI09 | Approval Fatigue |
+| ASI10 | Rogue Agent Drift |
+
+---
+
+## License
+
+MIT

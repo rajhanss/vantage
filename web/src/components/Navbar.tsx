@@ -1,111 +1,77 @@
 import React from 'react';
-import { Activity, Compass, Database, Network, RefreshCw, Shield } from 'lucide-react';
-import type { PlatformStats } from '../types';
+import { Shield, Play, Layers, Compass, GitCompare } from 'lucide-react';
 
 interface NavbarProps {
-  currentTab: string;
-  onSelectTab: (tab: string) => void;
-  stats: PlatformStats | null;
-  onTriggerIngest: () => void;
-  ingestRunning: boolean;
+  activeTab: 'dashboard' | 'heatmap' | 'scenarios' | 'compare';
+  onTabChange: (tab: 'dashboard' | 'heatmap' | 'scenarios' | 'compare') => void;
+  onLaunchClick: () => void;
+  isEvaluating?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  currentTab,
-  onSelectTab,
-  stats,
-  onTriggerIngest,
-  ingestRunning,
+  activeTab,
+  onTabChange,
+  onLaunchClick,
+  isEvaluating = false,
 }) => {
   const navItems = [
-    { id: 'signals', label: 'Signals & radar', icon: Activity },
-    { id: 'trends', label: 'Trajectories', icon: Compass },
-    { id: 'graph', label: 'Network matrix', icon: Network },
-    { id: 'investigate', label: 'Dossiers', icon: Shield },
-  ];
+    { id: 'dashboard', label: 'Evaluation Runs', icon: Layers },
+    { id: 'heatmap', label: 'OWASP Matrix', icon: Shield },
+    { id: 'scenarios', label: 'Scenario Catalog', icon: Compass },
+    { id: 'compare', label: 'Defense Compare', icon: GitCompare },
+  ] as const;
 
   return (
-    <header className="border-b border-vantage-700 bg-vantage-900/95 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand */}
-        <button
-          type="button"
-          className="flex items-center space-x-3 text-left focus-visible:ring-2 focus-visible:ring-vantage-accent rounded p-1"
-          onClick={() => onSelectTab('signals')}
-        >
-          <div className="w-8 h-8 rounded bg-vantage-accent text-white flex items-center justify-center font-mono font-bold text-base shadow-sm">
+    <nav className="h-14 border-b border-[var(--vt-border-subtle)] bg-[var(--vt-bg-card)] px-6 flex items-center justify-between sticky top-0 z-50">
+      <div className="flex items-center gap-8">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded bg-[var(--vt-accent-primary)] flex items-center justify-center text-white font-bold text-xs tracking-tight">
             V
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="font-semibold text-base text-white tracking-normal">Vantage</span>
-              <span className="px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-vantage-800 text-vantage-accent border border-vantage-700">
-                v0.1
-              </span>
-            </div>
-            <div className="text-[11px] text-slate-400">
-              Temporal intelligence platform
-            </div>
+          <div className="flex items-baseline gap-2">
+            <span className="font-bold text-base tracking-tight text-[var(--vt-text-main)]">
+              VANTAGE
+            </span>
+            <span className="text-[11px] font-mono text-[var(--vt-text-dim)]">
+              v0.1.0
+            </span>
           </div>
-        </button>
+        </div>
 
-        {/* Navigation Tabs */}
-        <nav className="flex space-x-1 sm:space-x-2" aria-label="Main navigation">
+        <div className="flex items-center gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = currentTab === item.id;
+            const active = activeTab === item.id;
             return (
               <button
                 key={item.id}
                 type="button"
-                onClick={() => onSelectTab(item.id)}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                onClick={() => onTabChange(item.id)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-2 transition-colors duration-150 ${
                   active
-                    ? 'bg-vantage-800 text-white border border-vantage-600 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-vantage-850'
+                    ? 'bg-[var(--vt-bg-hover)] text-[var(--vt-text-main)] border border-[var(--vt-border-subtle)]'
+                    : 'text-[var(--vt-text-secondary)] hover:text-[var(--vt-text-main)] hover:bg-[var(--vt-bg-hover)]'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${active ? 'text-vantage-accent' : 'text-slate-400'}`} aria-hidden="true" />
+                <Icon size={14} aria-hidden="true" />
                 <span>{item.label}</span>
               </button>
             );
           })}
-        </nav>
-
-        {/* Telemetry & Action */}
-        <div className="flex items-center space-x-4">
-          {stats && (
-            <div className="hidden lg:flex items-center space-x-3 text-xs text-slate-400 border-r border-vantage-700 pr-4">
-              <div className="flex items-center space-x-1.5">
-                <Database className="w-3.5 h-3.5 text-slate-500" aria-hidden="true" />
-                <span className="font-mono">{stats.database.entities} entities</span>
-              </div>
-              <div className="flex items-center space-x-1.5">
-                <Activity className="w-3.5 h-3.5 text-vantage-surge" aria-hidden="true" />
-                <span className="text-vantage-surge font-mono font-semibold">{stats.database.signals} signals</span>
-              </div>
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={onTriggerIngest}
-            disabled={ingestRunning}
-            className={`flex items-center space-x-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-              ingestRunning
-                ? 'bg-vantage-800 text-slate-500 border border-vantage-700 cursor-not-allowed'
-                : 'bg-vantage-accent text-white hover:bg-blue-600 shadow-sm'
-            }`}
-            title="Scan GitHub, HuggingFace, PyPI, arXiv, and HackerNews"
-          >
-            <RefreshCw
-              className={`w-3.5 h-3.5 ${ingestRunning ? 'animate-spin' : ''}`}
-              aria-hidden="true"
-            />
-            <span>{ingestRunning ? 'Scanning radar...' : 'Sweep adapters'}</span>
-          </button>
         </div>
       </div>
-    </header>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onLaunchClick}
+          disabled={isEvaluating}
+          className="px-3.5 py-1.5 rounded-md text-xs font-semibold bg-[var(--vt-accent-primary)] hover:bg-[var(--vt-accent-primary-hover)] text-white flex items-center gap-2 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Play size={13} aria-hidden="true" />
+          <span>{isEvaluating ? 'Evaluating Target...' : 'New Assessment'}</span>
+        </button>
+      </div>
+    </nav>
   );
 };

@@ -1,68 +1,62 @@
-import type {
-  GraphData,
-  InvestigationDossier,
-  PlatformStats,
-  Recommendation,
-  Signal,
-  TrendDetail,
-} from '../types';
+import type { RunComparison, RunConfig, RunSummary, Scenario } from '../types';
 
-const API_BASE = '';
-
-async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-  const resp = await fetch(`${API_BASE}${url}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-    ...options,
-  });
-  if (!resp.ok) {
-    const errorText = await resp.text();
-    throw new Error(`API ${resp.status} (${resp.statusText}): ${errorText}`);
-  }
-  return resp.json();
-}
+const BASE_URL = (import.meta as any).env?.VITE_API_URL || '';
 
 export const api = {
-  getStats: () => fetchJson<PlatformStats>('/api/v1/stats'),
+  async getHealth(): Promise<{ status: string; service: string; version: string }> {
+    const res = await fetch(`${BASE_URL}/health`);
+    if (!res.ok) throw new Error('Health check failed');
+    return res.json();
+  },
 
-  getSignals: (minZ = 0.0, limit = 50) =>
-    fetchJson<Signal[]>(`/api/v1/signals?min_z_score=${minZ}&limit=${limit}`),
+  async listScenarios(category?: string): Promise<Scenario[]> {
+    const url = category ? `${BASE_URL}/api/scenarios?category=${category}` : `${BASE_URL}/api/scenarios`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch scenarios');
+    return res.json();
+  },
 
-  getTrends: (limit = 30, entityType = '') =>
-    fetchJson<TrendDetail[]>(
-      `/api/v1/trends?limit=${limit}${entityType ? `&entity_type=${entityType}` : ''}`
-    ),
+  async getScenario(id: string): Promise<Scenario> {
+    const res = await fetch(`${BASE_URL}/api/scenarios/${id}`);
+    if (!res.ok) throw new Error(`Failed to fetch scenario ${id}`);
+    return res.json();
+  },
 
-  getTrend: (entityId: string) =>
-    fetchJson<TrendDetail>(`/api/v1/trends/${encodeURIComponent(entityId)}`),
+  async listRuns(): Promise<RunSummary[]> {
+    const res = await fetch(`${BASE_URL}/api/runs`);
+    if (!res.ok) throw new Error('Failed to list runs');
+    return res.json();
+  },
 
-  getGraph: (limit = 120) =>
-    fetchJson<GraphData>(`/api/v1/graph?limit=${limit}`),
+  async getRun(runId: string): Promise<RunSummary> {
+    const res = await fetch(`${BASE_URL}/api/runs/${runId}`);
+    if (!res.ok) throw new Error(`Failed to fetch run ${runId}`);
+    return res.json();
+  },
 
-  getInvestigations: (limit = 20) =>
-    fetchJson<InvestigationDossier[]>(`/api/v1/investigations?limit=${limit}`),
-
-  getInvestigation: (id: string) =>
-    fetchJson<InvestigationDossier>(`/api/v1/investigations/${encodeURIComponent(id)}`),
-
-  startInvestigation: (entityId: string) =>
-    fetchJson<InvestigationDossier>('/api/v1/investigate', {
+  async createRun(config: RunConfig): Promise<RunSummary> {
+    const res = await fetch(`${BASE_URL}/api/runs`, {
       method: 'POST',
-      body: JSON.stringify({ entity_id: entityId }),
-    }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    });
+    if (!res.ok) throw new Error('Failed to execute evaluation run');
+    return res.json();
+  },
 
-  getRecommendations: (entityId: string, topK = 10) =>
-    fetchJson<Recommendation[]>(
-      `/api/v1/recommendations?entity_id=${encodeURIComponent(entityId)}&top_k=${topK}`
-    ),
+  async killRun(runId: string): Promise<{ status: string }> {
+    const res = await fetch(`${BASE_URL}/api/runs/${runId}/kill`, { method: 'POST' });
+    if (!res.ok) throw new Error(`Failed to kill run ${runId}`);
+    return res.json();
+  },
 
-  triggerIngest: () =>
-    fetchJson<{ status: string; message: string }>('/api/v1/ingest/trigger', {
-      method: 'POST',
-    }),
+  async compareRuns(baselineId: string, hardenedId: string): Promise<RunComparison> {
+    const res = await fetch(`${BASE_URL}/api/compare?baseline_id=${baselineId}&hardened_id=${hardenedId}`);
+    if (!res.ok) throw new Error('Failed to compare runs');
+    return res.json();
+  },
 
-  getIngestStatus: () =>
-    fetchJson<{ running: boolean }>('/api/v1/ingest/status'),
+  getReportUrl(runId: string, format: 'json' | 'markdown' | 'html'): string {
+    return `${BASE_URL}/api/reports/${runId}?format=${format}`;
+  },
 };

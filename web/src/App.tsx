@@ -1,200 +1,94 @@
-import React, { useEffect, useState } from 'react';
-import { api } from './api/client';
-import type {
-  GraphData,
-  InvestigationDossier,
-  PlatformStats,
-  Recommendation,
-  Signal,
-  TrendDetail,
-} from './types';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
-import { Dashboard } from './pages/Dashboard';
-import { TrendsPage } from './pages/TrendsPage';
-import { GraphExplorer } from './pages/GraphExplorer';
-import { InvestigationView } from './pages/InvestigationView';
+import { RunDashboard } from './pages/RunDashboard';
+import { HeatmapView } from './pages/HeatmapView';
+import { ScenarioCatalog } from './pages/ScenarioCatalog';
+import { CompareView } from './pages/CompareView';
+import { LaunchModal } from './components/LaunchModal';
+import { api } from './api/client';
+import type { RunConfig, RunSummary, Scenario } from './types';
 
 export const App: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<string>('signals');
-  const [stats, setStats] = useState<PlatformStats | null>(null);
-  const [signals, setSignals] = useState<Signal[]>([]);
-  const [trends, setTrends] = useState<TrendDetail[]>([]);
-  const [selectedTrend, setSelectedTrend] = useState<TrendDetail | null>(null);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [], communities: [] });
-  const [dossiers, setDossiers] = useState<InvestigationDossier[]>([]);
-  const [selectedDossier, setSelectedDossier] = useState<InvestigationDossier | null>(null);
-
-  const [loading, setLoading] = useState<boolean>(true);
-  const [ingestRunning, setIngestRunning] = useState<boolean>(false);
-  const [investigating, setInvestigating] = useState<boolean>(false);
-  const [notice, setNotice] = useState<string>('');
-
-  const showNotice = (msg: string) => {
-    setNotice(msg);
-    setTimeout(() => setNotice(''), 4000);
-  };
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [statsRes, signalsRes, trendsRes, graphRes, dossiersRes] = await Promise.allSettled([
-        api.getStats(),
-        api.getSignals(0.0, 50),
-        api.getTrends(40),
-        api.getGraph(150),
-        api.getInvestigations(20),
-      ]);
-
-      if (statsRes.status === 'fulfilled') setStats(statsRes.value);
-      if (signalsRes.status === 'fulfilled') setSignals(signalsRes.value);
-      if (trendsRes.status === 'fulfilled') {
-        setTrends(trendsRes.value);
-        if (trendsRes.value.length > 0 && !selectedTrend) {
-          setSelectedTrend(trendsRes.value[0]);
-          loadRecommendations(trendsRes.value[0].entity.id);
-        }
-      }
-      if (graphRes.status === 'fulfilled') setGraphData(graphRes.value);
-      if (dossiersRes.status === 'fulfilled') {
-        setDossiers(dossiersRes.value);
-        if (dossiersRes.value.length > 0 && !selectedDossier) {
-          setSelectedDossier(dossiersRes.value[0]);
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadRecommendations = async (entityId: string) => {
-    try {
-      const recs = await api.getRecommendations(entityId, 8);
-      setRecommendations(recs);
-    } catch {
-      setRecommendations([]);
-    }
-  };
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'heatmap' | 'scenarios' | 'compare'>('dashboard');
+  const [runs, setRuns] = useState<RunSummary[]>([]);
+  const [selectedRun, setSelectedRun] = useState<RunSummary | null>(null);
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [isLaunchModalOpen, setIsLaunchModalOpen] = useState(false);
+  const [isEvaluating, setIsEvaluating] = useState(false);
 
   useEffect(() => {
-    loadData();
-    const timer = setInterval(async () => {
-      try {
-        const s = await api.getIngestStatus();
-        setIngestRunning(s.running);
-      } catch {
-        // ignore
-      }
-    }, 8000);
-    return () => clearInterval(timer);
+    // Initial fetch of scenarios and runs
+    api.listScenarios()
+      .then(setScenarios)
+      .catch((err) => console.warn('Failed to load scenarios:', err));
+
+    api.listRuns()
+      .then(async (runList) => {
+        if (runList.length > 0) {
+          // Fetch full summary of the latest run
+          const latest = await api.getRun(runList[0].run_id);
+          setSelectedRun(latest);
+          setRuns([latest]);
+        }
+      })
+      .catch((err) => console.warn('Failed to list runs:', err));
   }, []);
 
-  const handleSelectTrend = (t: TrendDetail) => {
-    setSelectedTrend(t);
-    loadRecommendations(t.entity.id);
-  };
-
-  const handleInspectEntity = async (entityId: string) => {
+  const handleLaunchAssessment = async (config: RunConfig) => {
+    setIsEvaluating(true);
     try {
-      const detail = await api.getTrend(entityId);
-      setSelectedTrend(detail);
-      loadRecommendations(entityId);
-      setCurrentTab('trends');
-    } catch (e) {
-      showNotice(`Entity inspection failed: ${e}`);
-    }
-  };
-
-  const handleStartInvestigation = async (entityId: string) => {
-    try {
-      setInvestigating(true);
-      showNotice('Investigation agent dispatched...');
-      const dossier = await api.startInvestigation(entityId);
-      setDossiers((prev) => [dossier, ...prev]);
-      setSelectedDossier(dossier);
-      setCurrentTab('investigate');
-      showNotice('Investigation dossier completed.');
-    } catch (e) {
-      showNotice(`Investigation failed: ${e}`);
+      const newSummary = await api.createRun(config);
+      setSelectedRun(newSummary);
+      setRuns((prev) => [newSummary, ...prev]);
+      setIsLaunchModalOpen(false);
+      setActiveTab('dashboard');
+    } catch (err: any) {
+      alert(`Assessment failed: ${err.message}`);
     } finally {
-      setInvestigating(false);
-    }
-  };
-
-  const handleTriggerIngest = async () => {
-    try {
-      setIngestRunning(true);
-      showNotice('Sweeping public ecosystems: GitHub, Hugging Face, PyPI, arXiv, and HackerNews...');
-      await api.triggerIngest();
-      setTimeout(loadData, 5000);
-    } catch (e) {
-      showNotice(`Trigger error: ${e}`);
+      setIsEvaluating(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-vantage-950 flex flex-col text-slate-100">
+    <div className="min-h-screen bg-[var(--vt-bg-app)] text-[var(--vt-text-main)] flex flex-col font-sans">
       <Navbar
-        currentTab={currentTab}
-        onSelectTab={setCurrentTab}
-        stats={stats}
-        onTriggerIngest={handleTriggerIngest}
-        ingestRunning={ingestRunning}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onLaunchClick={() => setIsLaunchModalOpen(true)}
+        isEvaluating={isEvaluating}
       />
 
-      {/* Ephemeral Notice Toast */}
-      {notice && (
-        <div className="fixed bottom-6 right-6 z-50 bg-vantage-800 border border-vantage-600 text-white text-xs px-4 py-2.5 rounded shadow-lg flex items-center space-x-2">
-          <span className="w-2 h-2 rounded-full bg-vantage-accent motion-safe:animate-pulse" />
-          <span>{notice}</span>
-        </div>
-      )}
-
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentTab === 'signals' && (
-          <Dashboard
-            signals={signals}
-            topTrends={trends}
-            onInspectEntity={handleInspectEntity}
-            loading={loading}
+      <main className="flex-1">
+        {activeTab === 'dashboard' && (
+          <RunDashboard
+            summary={selectedRun}
+            onLaunchNew={() => setIsLaunchModalOpen(true)}
           />
         )}
 
-        {currentTab === 'trends' && (
-          <TrendsPage
-            trends={trends}
-            selectedTrend={selectedTrend}
-            onSelectTrend={handleSelectTrend}
-            recommendations={recommendations}
-            onStartInvestigation={handleStartInvestigation}
-            investigating={investigating}
+        {activeTab === 'heatmap' && (
+          <HeatmapView
+            categories={selectedRun?.category_scores || []}
           />
         )}
 
-        {currentTab === 'graph' && (
-          <GraphExplorer
-            graphData={graphData}
-            onInspectEntity={handleInspectEntity}
-            loading={loading}
-          />
+        {activeTab === 'scenarios' && (
+          <ScenarioCatalog scenarios={scenarios} />
         )}
 
-        {currentTab === 'investigate' && (
-          <InvestigationView
-            dossiers={dossiers}
-            selectedDossier={selectedDossier}
-            onSelectDossier={setSelectedDossier}
-            loading={loading}
-          />
+        {activeTab === 'compare' && (
+          <CompareView runs={runs} />
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-vantage-700 bg-vantage-950 py-4 text-center text-xs text-slate-500">
-        Vantage Intelligence Platform: temporal signal discovery and predictive modeling.
-      </footer>
+      <LaunchModal
+        isOpen={isLaunchModalOpen}
+        onClose={() => setIsLaunchModalOpen(false)}
+        onLaunch={handleLaunchAssessment}
+        isLaunching={isEvaluating}
+      />
     </div>
   );
 };
+
 export default App;

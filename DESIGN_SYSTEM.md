@@ -1,71 +1,229 @@
-# Vantage Design System
+# Vantage — Design System
 
-> Engineered using the Hallmark Anti-AI-Slop specification (v2.0.0).
+## Identity
 
----
-
-## 1. Design Philosophy
-
-Vantage is an analytical intelligence platform designed for researchers, quantitative developers, and systems architects. Its interface prioritizes **information density, typographical clarity, and zero decorative noise**.
-
-### Anti-Slop Commitments (Hallmark Floor Rules)
-1. **No Neon / Cyberpunk Gradients:** Replaced generic purple-to-cyan neon glows with a restrained industrial dark palette.
-2. **Tokens at the Root:** Every color and font references CSS variables declared in `:root`. Zero raw inline hex values.
-3. **No Decorative Animations:** Eliminated arbitrary scanlines, pulsing orbs, and generic sparkle icons. Animations are strictly functional (e.g. data refresh spinner) with `prefers-reduced-motion` fallbacks.
-4. **Authentic Typography:** High-legibility grotesque (`Inter`) for natural reading paired with tabular monospace (`JetBrains Mono`) strictly for quantitative indicators ($Z$-scores, velocities, counts, timestamps).
-5. **No Eyebrows or Small Caps:** Replaced tracked all-caps eyebrows with clear sentence-case section headers.
-6. **Accessible Navigation:** Complete keyboard focus-visible rings (`outline: 2px solid var(--vt-border-focus)`), explicit SVG accessibility labels, and WCAG AA contrast compliance.
+Vantage is a security engineering tool. The visual language follows the aesthetic of professional terminal tooling and security dashboards: dark, dense, legible. No gradients. No decorative illustrations. No glassmorphism. Every element earns its place.
 
 ---
 
-## 2. Design Tokens
+## Colour Tokens
 
-### Canvas & Surface Hierarchy
+Defined in `web/src/index.css` as CSS custom properties.
+
 ```css
---vt-bg-canvas: #090b0e;             /* Primary document canvas */
---vt-bg-surface: #101318;            /* Card & container background */
---vt-bg-surface-elevated: #151921;   /* Hover / elevated element */
---vt-bg-surface-muted: #1c212c;      /* Muted secondary backgrounds */
+/* Background layers */
+--vt-bg-app:    #0a0d0f;   /* Page background */
+--vt-bg-card:   #111518;   /* Card / panel surface */
+--vt-bg-hover:  #161b1f;   /* Hovered surface */
+
+/* Text */
+--vt-text-main: #e8eaed;   /* Primary text */
+--vt-text-dim:  #8a9099;   /* Secondary / metadata */
+
+/* Accent */
+--vt-accent:         #3b82f6;   /* Primary interactive (blue) */
+--vt-accent-hover:   #2563eb;   /* Hovered primary */
+
+/* Semantic */
+--vt-success:   #22c55e;   /* Pass / safe */
+--vt-warning:   #f59e0b;   /* Partial / caution */
+--vt-danger:    #ef4444;   /* Fail / critical */
+--vt-muted:     #374151;   /* Disabled / inactive */
+
+/* Border */
+--vt-border:    #1e2530;   /* Default border */
+--vt-border-active: #3b82f6; /* Focused / selected border */
 ```
 
-### Borders & Dividers
+### Semantic usage
+
+| Token | Use |
+|-------|-----|
+| `--vt-danger` | High / critical severity, attack success |
+| `--vt-warning` | Medium severity, partial pass |
+| `--vt-success` | Low severity, attack blocked |
+| `--vt-accent` | Interactive elements, links, selected state |
+| `--vt-text-dim` | Timestamps, labels, metadata, secondary copy |
+
+---
+
+## Typography
+
 ```css
---vt-border-subtle: #242a38;         /* Structural table / card borders */
---vt-border-strong: #333b4e;         /* Emphasized active borders */
---vt-border-focus: #3b82f6;          /* Instant focus-visible rings */
+font-family: 'Inter', system-ui, -apple-system, sans-serif;
 ```
 
-### Typographic Hierarchy
-```css
---vt-text-primary: #f1f5f9;          /* High-contrast headings and primary values */
---vt-text-secondary: #94a3b8;        /* Body copy and descriptions */
---vt-text-muted: #64748b;            /* Secondary metadata and captions */
+### Scale
+
+| Role | Class | Size | Weight |
+|------|-------|------|--------|
+| Page heading | `text-2xl font-semibold` | 24px | 600 |
+| Section heading | `text-lg font-semibold` | 18px | 600 |
+| Body | `text-sm` | 14px | 400 |
+| Label / metadata | `text-xs font-medium` | 12px | 500 |
+| Monospace data | `font-mono text-xs` | 12px | 400 |
+
+### Rules
+
+- No `tracking-wider` on uppercase labels — it reads as AI-generated.
+- No `text-4xl` or larger headings in the app shell. This is a tool, not a landing page.
+- Monospace (`font-mono`) for all hashes, IDs, ASR values, and code snippets.
+
+---
+
+## Spacing
+
+Tailwind's default scale is used throughout. Key intervals:
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `p-4` | 16px | Card internal padding |
+| `gap-3` | 12px | Inline element gap |
+| `gap-6` | 24px | Section gap |
+| `mb-6` | 24px | Between major sections |
+| `px-6 py-4` | 24px / 16px | Page chrome padding |
+
+---
+
+## Components
+
+### Navbar
+
+- Fixed top, full width.
+- Logo + name left, navigation tabs right.
+- Active tab: `border-b-2 border-[var(--vt-accent)]`.
+- No dropdown menus. All top-level destinations are always visible.
+
+### Buttons
+
+| Variant | Appearance |
+|---------|-----------|
+| Primary | `bg-[var(--vt-accent)] text-white px-4 py-2 rounded text-sm font-medium` |
+| Destructive | `bg-[var(--vt-danger)] text-white …` |
+| Ghost | `text-[var(--vt-text-dim)] hover:text-[var(--vt-text-main)] …` |
+
+No pill shapes. `rounded` (4px) only.
+
+### Cards / Panels
+
+```
+bg-[var(--vt-bg-card)] border border-[var(--vt-border)] rounded-lg
 ```
 
-### Quantitative Signal Palette
+No drop shadows. Border only.
+
+### Tables
+
+- Striped via `even:bg-[var(--vt-bg-hover)]`.
+- Header: `text-xs font-medium text-[var(--vt-text-dim)] uppercase`.
+- No decorative borders between cells — only horizontal dividers.
+
+### Badges / Severity pills
+
 ```css
---vt-accent-primary: #3b82f6;        /* Primary action & forecast horizon */
---vt-signal-positive: #10b981;       /* Acceleration / growth surges */
---vt-signal-warning: #f59e0b;        /* Statistical anomalies / inflections */
---vt-signal-danger: #ef4444;         /* Decelerating / decay trends */
+/* critical */
+bg-red-900/40 text-red-400 border border-red-800
+
+/* high */
+bg-orange-900/40 text-orange-400 border border-orange-800
+
+/* medium */
+bg-yellow-900/40 text-yellow-400 border border-yellow-800
+
+/* low */
+bg-green-900/40 text-green-400 border border-green-800
+```
+
+Shape: `rounded px-2 py-0.5 text-xs font-medium`. No pill (`rounded-full`).
+
+### Progress bars (ASR)
+
+```
+bg-[var(--vt-bg-hover)] rounded-full h-1.5
+```
+
+Fill colour derived from severity: danger → warning → success by ASR value.
+
+### Empty states
+
+Plain text in `text-[var(--vt-text-dim)] text-sm`, centered in the container. No illustration. No emoji. One line of copy, one action button if applicable.
+
+### Modal / dialog
+
+```
+bg-[var(--vt-bg-card)] border border-[var(--vt-border)] rounded-lg
+```
+
+Backdrop: `bg-black/60`. No blur (`backdrop-blur`) — it costs GPU and looks decorative.
+
+---
+
+## Motion
+
+```css
+/* Only these transitions are permitted */
+transition-colors duration-150 ease-in-out   /* colour changes */
+transition-opacity duration-150              /* fade in/out */
+```
+
+No `transition-all`. No `animate-bounce`. No `animate-spin` except on genuine loading spinners.
+
+Respects `prefers-reduced-motion`:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0ms !important; }
+}
 ```
 
 ---
 
-## 3. Core Component Patterns
+## Iconography
 
-### Trajectory Charting
-- **Historical Curve:** 1.5px solid Signal Emerald (`#10b981`) with subtle single-step gradient area.
-- **Forecast Horizon:** 1.5px dashed Steel Blue (`#3b82f6`).
-- **Prediction Intervals:** Dual shaded uncertainty ribbons (80% and 95%) with monotonic bounds ($0 \le \text{lower}_{95} \le \text{lower}_{80} \le \hat{y} \le \text{upper}_{80} \le \text{upper}_{95}$).
+Lucide React icon set. No emoji as icons. No AI sparkle icons. No decorative illustrations.
 
-### Network Topology Matrix
-- **SVG Engine:** Scalable vector rendering with greedy modularity community grouping.
-- **Node Scale:** Dynamic radius proportional to link degree ($4\text{px} + 1.2 \cdot \text{degree}$).
-- **Accessibility:** Labeled SVG root with `aria-label="Entity co-occurrence graph matrix"`.
+Sizes:
+- Inline with text: `w-4 h-4`
+- Standalone: `w-5 h-5`
 
 ---
 
-## 4. Verification & Linting
-- **Sloplint Results:** 0 FAIL, 0 REFLEX, 0 WARN across 12 files.
-- **Test Suite:** 79 unit and integration tests passing (100%).
+## Layout
+
+### Shell
+
+```
+Navbar (fixed top, h-14)
+└── Main content area (pt-14, full viewport height)
+    └── Page component (px-6 py-6, max-w-7xl mx-auto)
+```
+
+### Responsive breakpoints
+
+| Breakpoint | Columns |
+|------------|---------|
+| `< 640px` | 1 |
+| `640–1024px` | 2 |
+| `> 1024px` | 3–4 depending on content density |
+
+Heatmap and comparison views collapse to single-column stacks on mobile. Tables become scrollable horizontally, not reformatted.
+
+---
+
+## Anti-patterns (never use)
+
+- `bg-gradient-to-*` decorative backgrounds
+- `backdrop-blur`
+- `rounded-full` on anything except avatars and circular icons
+- `tracking-wider` on uppercase text
+- Emoji as interface icons (`🔥`, `✨`, `🚀`)
+- `transition-all`
+- `shadow-xl` or larger shadows
+- Hardcoded colour values outside token definitions
+- `text-5xl` or larger headings in the app shell
+
+---
+
+## Hallmark compliance
+
+All source files pass `sloplint.mjs --tier floor` with `0 FAIL, 0 REFLEX, 0 WARN`.

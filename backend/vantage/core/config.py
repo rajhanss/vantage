@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     environment: str = "development"
     debug: bool = True
-    version: str = "0.1.0"
+    version: str = "1.0.0"
 
     # Server
     host: str = "0.0.0.0"
@@ -27,16 +27,6 @@ class Settings(BaseSettings):
     db_path: Path = Field(
         default_factory=lambda: Path(os.path.expanduser("~")) / ".vantage" / "vantage.db"
     )
-
-    # External AI Providers (Optional - agents use fallback synthesizers if absent)
-    groq_api_key: str = Field(default="")
-    gemini_api_key: str = Field(default="")
-    google_api_key: str = Field(default="")
-    tavily_api_key: str = Field(default="")
-
-    # Ingestion schedule & bounds
-    ingest_interval_minutes: int = 60
-    max_entities_per_adapter: int = 50
 
     log_level: str = "INFO"
 

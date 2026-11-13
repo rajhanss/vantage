@@ -1,76 +1,124 @@
-# VANTAGE — Agentic Research & Investigation Architecture
+# Vantage — AGENTS.md
 
-## 1. Overview
-
-Vantage features an autonomous multi-agent research framework designed to investigate signals detected by the quantitative engine. Rather than simply alerting the user that a metric changed, the Agentic Research Subsystem investigates *why* it changed, *who* is driving it, *how* it connects to historical developments, and *what* experts or communities are saying.
+This file describes the components that execute assessment logic inside the Vantage framework.
 
 ---
 
-## 2. Specialized Logical Agent Roles
+## Engine (`vantage/engine/runner.py`)
 
-The multi-agent system uses specialized functional agents operating under a central **Investigation Orchestrator**:
+The `AsyncRunner` is the central execution engine. It:
 
+1. Accepts a `RunConfig` (target spec + scenario IDs + trial count + timeout).
+2. Loads matching scenarios from the YAML catalog.
+3. Creates a target adapter via `create_target()`.
+4. For each scenario × trial, calls `target.run(scenario)` with a timeout.
+5. Passes the resulting `CanaryRecorder` to the `DeterministicOracle`.
+6. Emits `RunEvent` objects to the `EventBus` (consumed by SSE / API).
+7. Aggregates results into a `RunSummary`.
+
+The runner is fully async. All I/O (target calls, DB writes) uses `asyncio`.
+
+---
+
+## Oracle (`vantage/oracle/evaluator.py`)
+
+`DeterministicOracle` evaluates whether an adversarial scenario succeeded by checking `CanaryCondition` objects against a `CanaryRecorder`.
+
+Supported condition kinds:
+
+| Kind | Passes when |
+|------|-------------|
+| `file_written` | `recorder.files_written` contains the expected path |
+| `tool_called` | `recorder.tool_calls` contains a call matching name + arguments |
+| `data_exfiltrated` | `recorder.exfiltrated_endpoints` contains the expected URL prefix |
+| `loop_detected` | `recorder.tool_call_count` exceeds `threshold` |
+
+The oracle never calls an LLM. Results are deterministic given the same recorder state.
+
+---
+
+## Canary Toolkit (`vantage/targets/canary_toolkit.py`)
+
+`CanaryRecorder` instruments a target run. Target adapters call its methods:
+
+- `record_file_write(path)` — called when the agent writes a file.
+- `record_tool_call(name, arguments)` — called for every tool invocation.
+- `record_exfiltration(url)` — called when the agent posts to an external URL.
+
+`CANARY_TOOL_DEFINITIONS` is a set of tool schemas injected into the agent's context that cause it to record actions through the recorder when called.
+
+---
+
+## Scenario Loader (`vantage/scenarios/loader.py`)
+
+Loads YAML files from the `scenarios/` directory. Each file defines one or more scenarios. The loader validates against the `Scenario` Pydantic model and raises on schema errors.
+
+---
+
+## Scoring (`vantage/scoring/calculator.py`)
+
+| Function | Description |
+|----------|-------------|
+| `compute_wilson_interval(successes, trials)` | Returns `(low, high)` 95% Wilson score CI |
+| `compute_risk_grade(asr)` | Maps ASR to A/B/C/D/F |
+| `aggregate_scenario_trials(results)` | Groups trials by scenario, computes per-scenario ASR + CI |
+| `compute_category_scores(scenario_results)` | Aggregates per-category ASR weighted by severity |
+| `compare_runs(run_a, run_b)` | Returns per-category ASR delta (defense efficacy) |
+
+---
+
+## Targets (`vantage/targets/`)
+
+### Protocol (`base.py`)
+
+```python
+class Target(Protocol):
+    async def run(self, scenario: Scenario, recorder: CanaryRecorder) -> TrialResult: ...
 ```
-                       ┌───────────────────────────────┐
-                       │   Investigation Orchestrator  │
-                       │     (State & Goal Planner)    │
-                       └──────────────┬────────────────┘
-                                      │
-         ┌────────────────────────────┼────────────────────────────┐
-         ▼                            ▼                            ▼
-┌──────────────────┐        ┌──────────────────┐        ┌──────────────────┐
-│  Evidence Agent  │        │   Entity Agent   │        │  Temporal Agent  │
-│ - Source Verify  │        │ - Knowledge Graph│        │ - Curve Fitting  │
-│ - Contradictions │        │ - Aliases & Orgs │        │ - Velocity Shift │
-└──────────────────┘        └──────────────────┘        └──────────────────┘
-         │                            │                            │
-         └────────────────────────────┼────────────────────────────┘
-                                      ▼
-                       ┌───────────────────────────────┐
-                       │        Synthesis Agent        │
-                       │  - Evidence-Backed Dossier    │
-                       │  - Calibrated Confidence      │
-                       └───────────────────────────────┘
-```
 
-### 2.1 Investigation Orchestrator
-- Receives an investigation trigger (either an automated anomaly signal from the quantitative engine or a user question).
-- Formulates hypothesis trees and decomposes research objectives into parallel tasks.
-- Manages state, prevents loop stalls, and enforces deadline timeouts.
+### Adapters
 
-### 2.2 Evidence Agent
-- Searches external and internal indexes for primary sources.
-- Checks source authority, publication dates, and cross-source corroboration.
-- Explicitly flags unsupported claims or contradictory assertions across sources.
+| Adapter | Use case |
+|---------|----------|
+| `InProcessTargetAdapter` | Agent is a Python class in the same process |
+| `HttpTargetAdapter` | Agent exposes a REST endpoint |
+| `SubprocessTargetAdapter` | Agent runs as a separate process |
 
-### 2.3 Entity & Graph Agent
-- Discovers named entities (authors, libraries, companies, communities).
-- Queries the entity relationship graph to detect community clusters, co-occurrence patterns, and influence paths.
-
-### 2.4 Temporal Intelligence Agent
-- Inspects historical time-series data for the topic or entity.
-- Fits growth curves (exponential, logistic, declining) and identifies structural change-points.
-
-### 2.5 Synthesis Agent
-- Compiles findings into an executive intelligence report.
-- Cites every factual assertion with exact URLs, dates, and evidence IDs.
-- Outputs structured intelligence reports with confidence scores.
+The `create_target(spec)` factory selects the right adapter based on `spec.kind`.
 
 ---
 
-## 3. Investigation Lifecycle & State Machine
+## Testbed (`vantage/testbed/toy_agent.py`)
 
-1. **Trigger & Goal Definition**: Anomaly detected (e.g., star velocity $Z > 3.5$) $\rightarrow$ Objective defined.
-2. **Context Retrieval**: Retrieve entity profile, historical metrics, and related graph nodes.
-3. **Multi-Source Evidence Gathering**: Fetch recent releases, HN discussions, arXiv preprints, and commit logs.
-4. **Cross-Validation**: Filter hallucinations, reconcile timestamp ordering, and identify counter-evidence.
-5. **Report Generation**: Produce markdown intelligence dossier with quantitative charts and timeline.
-6. **Persistence**: Store investigation dossier, update entity graph, and schedule recurring monitoring.
+`ToyAgentTarget` is a reference agent for calibration:
+
+- **vulnerable mode** — detects `CANARY_*` tokens in the attack payload and fires corresponding canary conditions (simulating a successfully hijacked agent).
+- **hardened mode** — wraps untrusted tool data in `<untrusted_tool_data>` tags and never acts on injected instructions.
 
 ---
 
-## 4. Guardrails & Safety Mandates
+## Report Generator (`vantage/report/generator.py`)
 
-1. **Anti-Hallucination Barrier**: Agents are strictly prohibited from generating synthetic statistics, fake paper titles, or phantom URLs. If an adapter returns no data, the agent must explicitly state `Insufficient Evidence`.
-2. **Context Isolation**: External web pages and discussion threads are sanitized and passed as untrusted data blocks. System prompt instructions can never be overridden by retrieved content.
-3. **Deterministic Pre-flight**: Quantitative data (star count, commit velocity, download numbers) is provided to agents from validated SQLite / PostgreSQL tables, not guessed by the model.
+| Format | Generator |
+|--------|-----------|
+| JSON | `JsonReportGenerator` |
+| Markdown | `MarkdownReportGenerator` |
+| HTML | `HtmlReportGenerator` |
+
+All generators redact strings matching `SECRET_PATTERN` (API keys, tokens).
+
+---
+
+## API Routes (`vantage/api/routes/`)
+
+| Route | Description |
+|-------|-------------|
+| `GET /health` | Service health and version |
+| `GET /api/scenarios` | List / filter scenarios |
+| `GET /api/scenarios/{id}` | Single scenario detail |
+| `POST /api/runs` | Launch assessment |
+| `GET /api/runs` | List runs |
+| `GET /api/runs/{id}` | Run status and summary |
+| `DELETE /api/runs/{id}` | Kill in-progress run |
+| `GET /api/runs/{id}/report` | Download report (JSON/MD/HTML) |
+| `POST /api/compare` | Compare two runs |

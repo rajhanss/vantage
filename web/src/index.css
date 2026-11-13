@@ -23,6 +23,14 @@
   --vt-signal-warning: #f59e0b;
   --vt-signal-danger: #ef4444;
 
+  /* Aliases */
+  --vt-bg-app: var(--vt-bg-canvas);
+  --vt-bg-card: var(--vt-bg-surface);
+  --vt-bg-hover: var(--vt-bg-surface-elevated);
+  --vt-text-main: var(--vt-text-primary);
+  --vt-text-dim: var(--vt-text-muted);
+  --vt-accent-primary-hover: var(--vt-accent-hover);
+
   color-scheme: dark;
 }
 
